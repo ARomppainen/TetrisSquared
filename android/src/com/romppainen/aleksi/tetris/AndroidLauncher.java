@@ -11,12 +11,9 @@ public class AndroidLauncher extends AndroidApplication {
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-<<<<<<< 49ad284918ca64dc2b8dbebbaecd225e858bf704
-=======
 		config.useAccelerometer = false;
 		config.useCompass = false;
 		config.useGyroscope = false;
->>>>>>> updated touch control
 		initialize(new TetrisSquared(), config);
 	}
 }

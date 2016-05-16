@@ -15,8 +15,8 @@ public class Board {
     public static final int HEIGHT = 12;
     public static final int PADDING = 16;
     public static final int BLOCK_SIZE = 64;
-    public static final float FALL_TIME_STEP = 0.1f;
-    public static final float FADE_OUT_TIME = 0.5f;
+    public static final float FALL_TIME_STEP = 0.06f;
+    public static final float FADE_OUT_TIME = 0.35f;
 
     public Block[][] blocks;
 
@@ -31,7 +31,7 @@ public class Board {
     }
 
     public boolean checkBounds(int x, int y) {
-        return (x > 0 && x < WIDTH && y > 0 && y < HEIGHT);
+        return (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT);
     }
 
     public boolean fit(Piece p) {
@@ -41,7 +41,7 @@ public class Board {
                 if (p.blocks[i][j] != null) {
                     //check bounds
                     if (x < 0 || x >= WIDTH ||
-                        y < 0 || y >= HEIGHT) {
+                            y < 0 || y >= HEIGHT) {
                         return false;
                     }
 
@@ -182,6 +182,28 @@ public class Board {
                 }
             }
         }
+    }
+
+    public void swapBlocks(GridPoint2 p1, GridPoint2 p2) {
+        Block temp = blocks[p1.x][p1.y];
+        blocks[p1.x][p1.y] = blocks[p2.x][p2.y];
+        blocks[p2.x][p2.y] = temp;
+    }
+
+    public static boolean isNeighbor(int x1, int y1, int x2, int y2) {
+        boolean neighbor = false;
+
+        if (x1 == x2) {
+            if (y1 == y2 + 1 || y1 == y2 - 1) {
+                neighbor = true;
+            }
+        } else if (y1 == y2) {
+            if (x1 == x2 + 1 || x1 == x2 - 1) {
+                neighbor = true;
+            }
+        }
+
+        return neighbor;
     }
 
     public static GridPoint2 CoordsToPoint(float x, float y) {

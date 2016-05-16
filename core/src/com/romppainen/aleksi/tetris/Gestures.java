@@ -5,6 +5,9 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Gestures implements GestureDetector.GestureListener {
 
+    public Vector2[] flings;
+    public int flingCount;
+
     public Vector2 pan;
     public boolean panned;
 
@@ -14,12 +17,19 @@ public class Gestures implements GestureDetector.GestureListener {
     public Vector2[] taps;
     public int tapCount;
 
+    public static final int MAX_FLINGS = 5;
     public static final int MAX_TAPS = 5;
     public static final float LONG_PRESS_TIME = 0.5f;
 
     private static Gestures instance;
 
     private Gestures() {
+        flings = new Vector2[MAX_FLINGS];
+
+        for (int i = 0; i < MAX_FLINGS; ++i) {
+            flings[i] = new Vector2();
+        }
+
         pan = new Vector2();
         panned = false;
 
@@ -44,10 +54,11 @@ public class Gestures implements GestureDetector.GestureListener {
     }
 
     public void clear() {
-        pan.set(0, 0);
+        //pan.set(0, 0);
 
-        panned = false;
+        //panned = false;
         pressed = false;
+        flingCount = 0;
         tapCount = 0;
     }
 
@@ -76,6 +87,11 @@ public class Gestures implements GestureDetector.GestureListener {
 
     @Override
     public boolean fling(float velocityX, float velocityY, int button) {
+        if (flingCount < MAX_FLINGS) {
+            flings[flingCount].set(velocityX, velocityY);
+            flingCount++;
+        }
+
         return false;
     }
 
@@ -90,6 +106,9 @@ public class Gestures implements GestureDetector.GestureListener {
 
     @Override
     public boolean panStop(float x, float y, int pointer, int button) {
+        pan.set(0, 0);
+        panned = false;
+
         return false;
     }
 
