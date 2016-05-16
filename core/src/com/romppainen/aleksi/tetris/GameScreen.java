@@ -96,117 +96,121 @@ public class GameScreen implements Screen {
             }
         } else if (tileMatchState) {
             if (Gdx.input.isTouched()) {
-                Vector3 v = game.camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0.0f));
-                board.blocks[origin.x][origin.y].sprite.setX(v.x - Board.BLOCK_SIZE / 2);
-                board.blocks[origin.x][origin.y].sprite.setY(v.y - Board.BLOCK_SIZE / 2);
-
-                GridPoint2 p = Board.CoordsToPoint(v.x, v.y);
-
-                Timeline t = Timeline.createSequence();
-                t.beginParallel();
-
-                if (target != null && !p.equals(target)) {
-                    Vector2 targetCoords = Board.PointToCoords(target.x, target.y);
-                    t.push(Tween.to(board.blocks[target.x][target.y].sprite, SpriteAccessor.POSITION_XY, SWAP_DURATION)
-                            .ease(TweenEquations.easeNone)
-                            .target(targetCoords.x, targetCoords.y));
-                }
-
-                if (    board.checkBounds(p.x, p.y) &&
-                        board.blocks[p.x][p.y] != null &&
-                        Board.isNeighbor(origin.x, origin.y, p.x, p.y)) {
-
-                    target = p;
-
-                    Vector2 originCoords = Board.PointToCoords(origin.x, origin.y);
-                    t.push(Tween.to(board.blocks[target.x][target.y].sprite, SpriteAccessor.POSITION_XY, SWAP_DURATION)
-                            .ease(TweenEquations.easeNone)
-                            .target(originCoords.x, originCoords.y));
-                } else {
-                    target = null;
-                }
-
-                t.end();
-                t.start(game.tween);
-
-            } else { // if no longer touched
-                if (target != null) {
-                    Vector2 targetCoords = Board.PointToCoords(target.x, target.y);
-                    Vector2 originCoords = Board.PointToCoords(origin.x, origin.y);
-
-                    board.blocks[origin.x][origin.y].sprite.setPosition(targetCoords.x, targetCoords.y);
-
-                    board.swapBlocks(origin, target);
-
-                    if (!findMatches()) {
-                        board.swapBlocks(origin, target);
-
-                        // kill the movement, so the sprites won't overlap
-                        game.tween.killTarget(board.blocks[target.x][target.y].sprite, SpriteAccessor.POSITION_XY);
-
-                        board.blocks[origin.x][origin.y].sprite.setPosition(originCoords.x, originCoords.y);
-                        board.blocks[target.x][target.y].sprite.setPosition(targetCoords.x, targetCoords.y);
-
-                        System.out.print(origin);
-                        System.out.println(originCoords);
-                        System.out.print(target);
-                        System.out.println(targetCoords);
-                    }
-                } else {
-                    Vector2 originCoords = Board.PointToCoords(origin.x, origin.y);
-                    board.blocks[origin.x][origin.y].sprite.setPosition(originCoords.x, originCoords.y);
-                }
-
-                origin = null;
-                target = null;
-                tileMatchState = false;
+                updateMatchTiles();
+            } else {
+                updateMatchTilesEnd();
             }
         } else {
+            updateKeyboard();
+            updateTouch();
+        }
+    }
 
-            // keyboard input
-            if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-                piece.tryToMove(Input.Keys.LEFT, board);
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-                piece.tryToMove(Input.Keys.RIGHT, board);
-            } /*else if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-                piece.tryToMove(Input.Keys.UP, board);
-            } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-                piece.tryToMove(Input.Keys.DOWN, board);
-            }*/
+    private void updateMatchTiles() {
+        Vector3 v = game.camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0.0f));
+        board.blocks[origin.x][origin.y].sprite.setX(v.x - Board.BLOCK_SIZE / 2);
+        board.blocks[origin.x][origin.y].sprite.setY(v.y - Board.BLOCK_SIZE / 2);
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-                piece.tryToRotate(board);
+        GridPoint2 p = Board.CoordsToPoint(v.x, v.y);
+
+        Timeline t = Timeline.createSequence();
+        t.beginParallel();
+
+        if (target != null && !p.equals(target)) {
+            Vector2 targetCoords = Board.PointToCoords(target.x, target.y);
+            t.push(Tween.to(board.blocks[target.x][target.y].sprite, SpriteAccessor.POSITION_XY, SWAP_DURATION)
+                    .ease(TweenEquations.easeNone)
+                    .target(targetCoords.x, targetCoords.y));
+        }
+
+        if (    board.checkBounds(p.x, p.y) &&
+                board.blocks[p.x][p.y] != null &&
+                Board.isNeighbor(origin.x, origin.y, p.x, p.y)) {
+
+            target = p;
+
+            Vector2 originCoords = Board.PointToCoords(origin.x, origin.y);
+            t.push(Tween.to(board.blocks[target.x][target.y].sprite, SpriteAccessor.POSITION_XY, SWAP_DURATION)
+                    .ease(TweenEquations.easeNone)
+                    .target(originCoords.x, originCoords.y));
+        } else {
+            target = null;
+        }
+
+        t.end();
+        t.start(game.tween);
+    }
+
+    private void updateMatchTilesEnd() {
+        if (target != null) {
+            Vector2 targetCoords = Board.PointToCoords(target.x, target.y);
+            Vector2 originCoords = Board.PointToCoords(origin.x, origin.y);
+
+            board.blocks[origin.x][origin.y].sprite.setPosition(targetCoords.x, targetCoords.y);
+
+            board.swapBlocks(origin, target);
+
+            if (!findMatches()) {
+                board.swapBlocks(origin, target);
+
+                // kill the movement, so the sprites won't overlap
+                game.tween.killTarget(board.blocks[target.x][target.y].sprite, SpriteAccessor.POSITION_XY);
+
+                board.blocks[origin.x][origin.y].sprite.setPosition(originCoords.x, originCoords.y);
+                board.blocks[target.x][target.y].sprite.setPosition(targetCoords.x, targetCoords.y);
             }
+        } else {
+            Vector2 originCoords = Board.PointToCoords(origin.x, origin.y);
+            board.blocks[origin.x][origin.y].sprite.setPosition(originCoords.x, originCoords.y);
+        }
 
-            if (    Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
-                    Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+        origin = null;
+        target = null;
+        tileMatchState = false;
+    }
+
+    private void updateKeyboard() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            piece.tryToMove(Input.Keys.LEFT, board);
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            piece.tryToMove(Input.Keys.RIGHT, board);
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            piece.tryToRotate(board);
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
+            Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+
+            putPieceOnBoard();
+        }
+    }
+
+    private void updateTouch() {
+        for (int i = 0; i < Gestures.instance().flingCount; ++i) {
+            if (Gestures.instance().flings[i].y > 2.0 * Board.BLOCK_SIZE) {
                 putPieceOnBoard();
+                return;
             }
+        }
 
-            if (Gestures.instance().panned) {
-                if (Gestures.instance().pan.x > 0) {
-                    while (Gestures.instance().pan.x > Board.BLOCK_SIZE) {
-                        piece.tryToMove(Input.Keys.RIGHT, board);
-                        Gestures.instance().pan.x -= Board.BLOCK_SIZE;
-                    }
-                } else if (Gestures.instance().pan.x < 0) {
-                    while (Gestures.instance().pan.x < -Board.BLOCK_SIZE) {
-                        piece.tryToMove(Input.Keys.LEFT, board);
-                        Gestures.instance().pan.x += Board.BLOCK_SIZE;
-                    }
+        if (Gestures.instance().panned) {
+            if (Gestures.instance().pan.x > 0) {
+                while (Gestures.instance().pan.x > Board.BLOCK_SIZE) {
+                    piece.tryToMove(Input.Keys.RIGHT, board);
+                    Gestures.instance().pan.x -= Board.BLOCK_SIZE;
+                }
+            } else if (Gestures.instance().pan.x < 0) {
+                while (Gestures.instance().pan.x < -Board.BLOCK_SIZE) {
+                    piece.tryToMove(Input.Keys.LEFT, board);
+                    Gestures.instance().pan.x += Board.BLOCK_SIZE;
                 }
             }
+        }
 
-            for (int i = 0; i < Gestures.instance().tapCount; ++i) {
-                piece.tryToRotate(board);
-            }
-
-            for (int i = 0; i < Gestures.instance().flingCount; ++i) {
-                if (Gestures.instance().flings[i].y > 1.5 * Board.BLOCK_SIZE) {
-                    putPieceOnBoard();
-                    break;
-                }
-            }
+        for (int i = 0; i < Gestures.instance().tapCount; ++i) {
+            piece.tryToRotate(board);
         }
     }
 
